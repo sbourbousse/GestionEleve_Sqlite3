@@ -2,14 +2,17 @@
 #include "ui_dialogeditetudiant.h"
 #include <QSqlQuery>
 #include <QDebug>
+#include "mainwindow.h"
 
-DialogEditEtudiant::DialogEditEtudiant(QWidget *parent, QString idOfEtudiant) :
+DialogEditEtudiant::DialogEditEtudiant(QWidget *parent, QString id) :
     QDialog(parent),
     ui(new Ui::DialogEditEtudiant)
 {
     ui->setupUi(this);
-    idToEdit=idOfEtudiant;
+    myId=id;
+    loadComboBox();
     loadEtudiant();
+
 }
 
 DialogEditEtudiant::~DialogEditEtudiant()
@@ -17,56 +20,45 @@ DialogEditEtudiant::~DialogEditEtudiant()
     delete ui;
 }
 
-
 void DialogEditEtudiant::loadEtudiant()
 {
-    //Get information about the Etudiant to edit
-    QSqlQuery myQuery("select etudiantPrenom,etudiantNom,optionId from Etudiant where etudiantId="+idToEdit);
-    //Select the first row
-    myQuery.first();
-    //Put informations in the line edits
-    ui->lineEditPrenom->setText(myQuery.value(0).toString());
-    ui->lineEditNom->setText(myQuery.value(1).toString());
-    int optionId = myQuery.value(2).toInt();
+    QSqlQuery myRequest("select etudiantPrenom,etudiantNom,optionId from Etudiant where etudiantId="+myId);
 
-    //Combo box option
-    QSqlQuery myComboBoxQuery("select optionId,optionLibelle from Option");
-    int i = 0;
-    while(myComboBoxQuery.next())
+    myRequest.first();
+
+    ui->lineEditNom->setText(myRequest.value(1).toString());
+    ui->lineEditPrenom->setText(myRequest.value(0).toString());
+    ui->comboBoxOption->setCurrentIndex(ui->comboBoxOption->findData(myRequest.value(2)));
+}
+
+void DialogEditEtudiant::loadComboBox()
+{
+    //Select query
+    QSqlQuery comboBoxQuery("select optionId,optionLibelle from Option");
+
+    //Adding row to my combo box
+    while(comboBoxQuery.next())
     {
-        ui->comboBoxOption->addItem(myComboBoxQuery.value(1).toString(),myComboBoxQuery.value(0).toInt());
-        if (optionId==myComboBoxQuery.value(0).toInt())
-            ui->comboBoxOption->setCurrentIndex(i);
-        i++;
-
+        //Adding Items to my row with id as data
+        ui->comboBoxOption->addItem(comboBoxQuery.value(1).toString(),comboBoxQuery.value(0).toInt());
     }
+
 }
 
 void DialogEditEtudiant::on_pushButtonEdit_clicked()
 {
     QString firstName = ui->lineEditPrenom->text();
     QString lastName = ui->lineEditNom->text();
-    QString id = ui->comboBoxOption->currentData().toString();
-    QString optionLib = ui->comboBoxOption->currentText();
+    QString optionId = ui->comboBoxOption->currentData().toString();
 
-    auto itemfirstName = w->getUI()->tableWidgetEtudiant->item(rowSelected, 1);
-    auto itemlastName = w->getUI()->tableWidgetEtudiant->item(rowSelected, 2);
-    auto itemId = w->getUI()->tableWidgetEtudiant->item(rowSelected, 0);
-    auto itemOptionLib = w->getUI()->tableWidgetEtudiant->item(rowSelected,3);
+    QSqlQuery myRequest("update Etudiant set etudiantPrenom=\""+firstName+"\", etudiantNom=\""+lastName+"\", optionId="+optionId+" where etudiantId="+myId);
+    qDebug()<<"update Etudiant set etudiantPrenom=\""<<firstName<<"\", etudiantNom=\""<<lastName<<"\", optionId="<<optionId<<" where etudiantId="<<myId;
 
-    itemfirstName->setText(firstName);
-    itemlastName->setText(lastName);
-    itemId->setText(id);
-    itemOptionLib->setText(optionLib);
 
-    if(firstName.length()==0 || lastName.length()==0)
-        ui->labelErrorMessage->setText("Un ou plusieurs champs ne sont pas remplis");
-    else
-    {
-        QSqlQuery myQuery("update Etudiant set etudiantPrenom=\""+firstName+"\" ,etudiantNom=\""+lastName+"\", optionId="+id+" where etudiantId="+idToEdit);
-        qDebug()<<"update Etudiant set etudiantPrenom=\""+firstName+"\" ,etudiantNom=\""+lastName+"\", optionId="+id+" where etudiantId="+idToEdit;
-        close();
-    }
+    ((MainWindow*)parent())->loadQTableWidget();
+
+    close();
+
 }
 
 void DialogEditEtudiant::on_pushButtonCancel_clicked()

@@ -1,5 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QSqlQuery>
+#include <QDebug>
+#include <QMessageBox>
+#include "dialogeditetudiant.h"
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -18,14 +22,12 @@ void MainWindow::loadDatabase()
      * OPENING SQLITE DATABASE
      */
 
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName("./SLAM3/Gestion_Etudiant_v1/database.db");
-    db.open();
-
 }
 
 void MainWindow::loadQTableWidget()
 {
+    ui->tableWidgetEtudiant->setRowCount(0);
+
     //Select query
     QSqlQuery tableQuery("select etudiantId,etudiantPrenom, etudiantNom ,optionLibelle from Etudiant natural join Option");
 
@@ -59,6 +61,11 @@ void MainWindow::loadQTableWidget()
     //Hide the id column
     ui->tableWidgetEtudiant->hideColumn(0);
 
+    QStringList mesEntetes= {"Id","Prenom","Nom","Option"};
+    ui->tableWidgetEtudiant->setHorizontalHeaderLabels(mesEntetes);
+    ui->tableWidgetEtudiant->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->tableWidgetEtudiant->verticalHeader()->setVisible(false);
+
 }
 
 void MainWindow::loadQComboBox()
@@ -77,23 +84,29 @@ void MainWindow::loadQComboBox()
 
 void MainWindow::on_pushButtonRemove_clicked()
 {
-    QList<QTableWidgetItem*> itemSelected = ui->tableWidgetEtudiant->selectedItems();
-
-    //Get every row by counting 3 by 3
-    for(int rowCount = 0 ; rowCount<itemSelected.size() ; rowCount+=3)
+    if(ui->tableWidgetEtudiant->currentRow()==-1)
+        QMessageBox::warning(this,"Aucune ligne selectionné","Selectionnez un etudiant à modifer");
+    else
     {
-        QString idToDelete = ui->tableWidgetEtudiant->item(itemSelected[rowCount]->row(),0)->text(); //0 is the id column
 
-        //Delete query
+        QList<QTableWidgetItem*> itemSelected = ui->tableWidgetEtudiant->selectedItems();
 
-        QSqlQuery deleteQuery("delete from Etudiant where etudiantId="+idToDelete);
+        //Get every row by counting 3 by 3
+        for(int rowCount = 0 ; rowCount<itemSelected.size() ; rowCount+=3)
+        {
+            QString idToDelete = ui->tableWidgetEtudiant->item(itemSelected[rowCount]->row(),0)->text(); //0 is the id column
 
-    }
+            //Delete query
 
-    //Reset the tableWidget to load changes
-    ui->tableWidgetEtudiant->setRowCount(0);
+            QSqlQuery deleteQuery("delete from Etudiant where etudiantId="+idToDelete);
 
-    loadQTableWidget();
+        }
+
+        //Reset the tableWidget to load changes
+        ui->tableWidgetEtudiant->setRowCount(0);
+
+        loadQTableWidget();
+     }
 }
 
 void MainWindow::on_pushButtonAdd_clicked()
@@ -123,6 +136,10 @@ void MainWindow::on_pushButtonAdd_clicked()
        //Reset the tableWidget to load changes
        ui->tableWidgetEtudiant->setRowCount(0);
 
+       ui->lineEditFirstName->setText("");
+       ui->lineEditLastName->setText("");
+       ui->comboBoxOption->setCurrentIndex(0);
+
        loadQTableWidget();
     }
 }
@@ -134,8 +151,15 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::on_pushButtonEdit_clicked()
+{
+    if(ui->tableWidgetEtudiant->currentRow()==-1)
+        QMessageBox::warning(this,"Aucune ligne selectionné","Selectionnez un etudiant à modifer");
+    else
+    {
+        QString myId = ui->tableWidgetEtudiant->item(ui->tableWidgetEtudiant->currentRow(),0)->text();
 
-
-
-
-
+        DialogEditEtudiant *editDialog = new DialogEditEtudiant(this,myId);
+        editDialog->show();
+    }
+}

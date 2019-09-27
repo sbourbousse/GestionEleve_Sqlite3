@@ -1,14 +1,16 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2019-09-06T13:55:48
+# Project created by QtCreator 2019-09-27T13:32:17
 #
 #-------------------------------------------------
 
-QT       += core gui
+CONFIG += c++11
+
+QT       += core gui sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = Gestion_Etudiant_v1
+TARGET = gestionEleves_Sqlite3
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
@@ -24,12 +26,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    dialogeditetudiant.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    dialogeditetudiant.h
 
-FORMS    += mainwindow.ui
-
-QT       += core gui sql
-
-QT       += sql
+FORMS    += mainwindow.ui \
+    dialogeditetudiant.ui

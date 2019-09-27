@@ -2,15 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QSqlDatabase>
-#include <QSqlDriver>
-#include <QSqlError>
-#include <QSqlQuery>
-#include <QTableView>
-#include <QItemDelegate>
-#include <QStandardItemModel>
-#include <QSqlTableModel>
-#include <QDebug>
 
 namespace Ui {
 class MainWindow;
@@ -24,7 +15,8 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-private slots:
+public slots:
+
     void loadDatabase();
 
     void loadQTableWidget();
@@ -35,9 +27,11 @@ private slots:
 
     void on_pushButtonAdd_clicked();
 
+
+    void on_pushButtonEdit_clicked();
+
 private:
     Ui::MainWindow *ui;
-    QStandardItemModel *model;
 };
 
 #endif // MAINWINDOW_H
